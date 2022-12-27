@@ -11,6 +11,11 @@ class Post(models.Model):
         User, on_delete=models.CASCADE, related_name='posts')
     image = models.ImageField(
         upload_to='posts/', null=True, blank=True)
+    group = models.ForeignKey(
+        'Group',
+        blank=True, null=True,
+        on_delete=models.SET_NULL,
+        related_name='posts')
 
     def __str__(self):
         return self.text
@@ -24,3 +29,30 @@ class Comment(models.Model):
     text = models.TextField()
     created = models.DateTimeField(
         'Дата добавления', auto_now_add=True, db_index=True)
+
+
+class Follow(models.Model):
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='follower')
+    following = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='following')
+
+
+class Group(models.Model):
+    title = models.CharField(
+        "заголовок",
+        max_length=200,
+        help_text="напишите название группы"
+    )
+    slug = models.SlugField(
+        "слаг",
+        unique=True,
+        help_text="придумайте короткое уникальное имя группы"
+    )
+    description = models.TextField(
+        "описание",
+        help_text="напишите краткое описание группы"
+    )
+
+    def __str__(self):
+        return self.title
