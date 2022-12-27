@@ -4,6 +4,26 @@ from django.db import models
 User = get_user_model()
 
 
+class Group(models.Model):
+    title = models.CharField(
+        "заголовок",
+        max_length=200,
+        help_text="напишите название группы"
+    )
+    slug = models.SlugField(
+        "слаг",
+        unique=True,
+        help_text="придумайте короткое уникальное имя группы"
+    )
+    description = models.TextField(
+        "описание",
+        help_text="напишите краткое описание группы"
+    )
+
+    def __str__(self):
+        return self.title
+
+
 class Post(models.Model):
     text = models.TextField()
     pub_date = models.DateTimeField('Дата публикации', auto_now_add=True)
@@ -12,7 +32,7 @@ class Post(models.Model):
     image = models.ImageField(
         upload_to='posts/', null=True, blank=True)
     group = models.ForeignKey(
-        'Group',
+        Group,
         blank=True, null=True,
         on_delete=models.SET_NULL,
         related_name='posts')
@@ -36,23 +56,3 @@ class Follow(models.Model):
         User, on_delete=models.CASCADE, related_name='follower')
     following = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='following')
-
-
-class Group(models.Model):
-    title = models.CharField(
-        "заголовок",
-        max_length=200,
-        help_text="напишите название группы"
-    )
-    slug = models.SlugField(
-        "слаг",
-        unique=True,
-        help_text="придумайте короткое уникальное имя группы"
-    )
-    description = models.TextField(
-        "описание",
-        help_text="напишите краткое описание группы"
-    )
-
-    def __str__(self):
-        return self.title
