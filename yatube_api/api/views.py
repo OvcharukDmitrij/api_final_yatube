@@ -1,5 +1,5 @@
 from django.shortcuts import get_object_or_404
-from rest_framework import filters, permissions, viewsets
+from rest_framework import filters, generics, permissions, viewsets
 from rest_framework.exceptions import NotFound, ParseError, PermissionDenied
 from rest_framework.pagination import LimitOffsetPagination
 
@@ -65,7 +65,7 @@ class GroupViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = GroupSerializer
 
 
-class FollowViewSet(viewsets.ModelViewSet):
+class FollowList(generics.ListCreateAPIView):
     serializer_class = FollowSerializer
     permission_classes = (permissions.IsAuthenticated,)
     filter_backends = (filters.SearchFilter,)
@@ -78,10 +78,7 @@ class FollowViewSet(viewsets.ModelViewSet):
         if user == author:
             raise ParseError(
                 'Нельзя подписаться на самого себя.')
-        elif user.follower.filter(following=author):
-            raise ParseError(
-                'Вы уже подписаны на этого автора.')
-        serializer.save(user=user)
+        serializer.save(user=self.request.user)
 
     def get_queryset(self):
         new_queryset = Follow.objects.filter(user=self.request.user)
