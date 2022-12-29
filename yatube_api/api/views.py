@@ -1,9 +1,8 @@
 from django.shortcuts import get_object_or_404
-from rest_framework import filters, generics, permissions, viewsets
+from posts.models import Comment, Follow, Group, Post, User
+from rest_framework import filters, mixins, permissions, viewsets
 from rest_framework.exceptions import NotFound, ParseError, PermissionDenied
 from rest_framework.pagination import LimitOffsetPagination
-
-from posts.models import Comment, Follow, Group, Post, User
 
 from .serializers import (CommentSerializer, FollowSerializer, GroupSerializer,
                           PostSerializer)
@@ -53,7 +52,7 @@ class CommentViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         post_id = self.kwargs.get("post_id")
-        post = Post.objects.filter(id=post_id)
+        post = get_object_or_404(Post, id=post_id)
         if not post:
             raise NotFound()
         new_queryset = Comment.objects.filter(post=post_id)
@@ -65,15 +64,20 @@ class GroupViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = GroupSerializer
 
 
-class FollowList(generics.ListCreateAPIView):
+class CreateListViewSet(mixins.CreateModelMixin, mixins.ListModelMixin,
+                        viewsets.GenericViewSet):
+    pass
+
+
+class FollowViewSet(CreateListViewSet):
     serializer_class = FollowSerializer
     permission_classes = (permissions.IsAuthenticated,)
     filter_backends = (filters.SearchFilter,)
     search_fields = ('following__username',)
 
     def perform_create(self, serializer):
-        author = User.objects.get(
-            username=serializer.initial_data['following'])
+        author = get_object_or_404(
+            User, username=serializer.initial_data['following'])
         user = self.request.user
         if user == author:
             raise ParseError(
